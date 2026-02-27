@@ -70,7 +70,7 @@ export default function App() {
   // Streaming parameters
   const [chunkSize, setChunkSize] = useState(1);
   const [avgDelay, setAvgDelay] = useState(30);
-  const [delayVariance, setDelayVariance] = useState(0);
+  const [delayVariance, setDelayVariance] = useState(10);
 
   const abortRef = useRef<AbortController | null>(null);
   const outputRef = useRef<HTMLDivElement | null>(null);
@@ -262,7 +262,7 @@ export default function App() {
                 />
               </label>
               <button
-                className="btn btn-auto"
+                className="btn-auto"
                 onClick={handleAutoGenerate}
                 disabled={streaming}
               >

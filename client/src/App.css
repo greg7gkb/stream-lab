@@ -163,7 +163,7 @@ body {
 
 .btn-auto {
   background: transparent;
-  border: 2px solid var(--accent);
+  border: 1px solid var(--accent);
   color: var(--accent);
   border-radius: var(--radius);
   font-size: 0.8rem;
