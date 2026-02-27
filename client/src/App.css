@@ -433,15 +433,21 @@ body {
 }
 
 @keyframes tokenTypewriter {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0% 0 0); }
 }
 
 .token-plain      { /* no animation */ }
-.token-fade       { animation: tokenFade       0.4s ease-out both; }
-.token-slide      { display: inline-block; animation: tokenSlide      0.35s ease-out both; }
-.token-pop        { display: inline-block; animation: tokenPop        0.4s cubic-bezier(0.34, 1.36, 0.64, 1) both; }
-.token-typewriter { animation: tokenTypewriter 0.01s ease-out both; }
+.token-fade       { animation: tokenFade  0.4s ease-out both; }
+.token-slide      { display: inline-block; animation: tokenSlide 0.35s ease-out both; }
+.token-pop        { display: inline-block; animation: tokenPop   0.4s cubic-bezier(0.34, 1.36, 0.64, 1) both; }
+.token.token-typewriter {
+  display: inline-block;
+  animation-name: tokenTypewriter;
+  animation-fill-mode: both;
+  font-kerning: none;
+  font-variant-ligatures: none;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .token-fade, .token-slide, .token-pop, .token-typewriter {

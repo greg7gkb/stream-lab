@@ -18,6 +18,25 @@ interface Props {
   outputRef: React.RefObject<HTMLDivElement>;
 }
 
+function renderToken(token: Token, mode: RenderMode): React.ReactNode {
+  if (mode === 'typewriter') {
+    if (token.text.length === 0) return null;
+    return (
+      <span
+        key={token.id}
+        className="token token-typewriter"
+        style={{
+          animationDuration: `${token.text.length * 30}ms`,
+          animationTimingFunction: `steps(${token.text.length}, end)`,
+        }}
+      >
+        {token.text}
+      </span>
+    );
+  }
+  return <span key={token.id} className={`token token-${mode}`}>{token.text}</span>;
+}
+
 export default memo(function OutputSection({ tokens, streaming, error, outputRef }: Props) {
   const [mode, setMode] = useState<RenderMode>('plain');
 
@@ -45,19 +64,7 @@ export default memo(function OutputSection({ tokens, streaming, error, outputRef
       <div className="output-box" ref={outputRef}>
         {tokens.length === 0 && !streaming
           ? <span className="placeholder">Response will appear here…</span>
-          : tokens.map((token) =>
-              mode === 'typewriter'
-                ? token.text.split('').map((char, i) => (
-                    <span
-                      key={`${token.id}-${i}`}
-                      className="token token-typewriter"
-                      style={{ animationDelay: `${i * 30}ms` }}
-                    >
-                      {char}
-                    </span>
-                  ))
-                : <span key={token.id} className={`token token-${mode}`}>{token.text}</span>
-            )
+          : tokens.map((token) => renderToken(token, mode))
         }
       </div>
 
