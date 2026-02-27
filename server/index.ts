@@ -1,21 +1,22 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { pickResponse } from './responses.js';
 
 const PORT: number = Number(process.env.PORT ?? 3001);
-const TOKEN_DELAY_MS: number = Number(process.env.TOKEN_DELAY_MS ?? 30);
-const CHUNK_SIZE: number = Number(process.env.CHUNK_SIZE ?? 1);
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 app.post('/stream', async (req: Request, res: Response) => {
-  const { prompt = '' } = req.body ?? {};
+  const {
+    text = '',
+    chunkSize = 1,
+    avgDelay = 30,
+    delayVariance = 0,
+  } = req.body ?? {};
 
-  const text = pickResponse(prompt);
   // Split on whitespace, keeping the spaces as part of tokens
-  const words = text.match(/\S+\s*/g) ?? [];
+  const words = (text as string).match(/\S+\s*/g) ?? [];
 
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -30,10 +31,15 @@ app.post('/stream', async (req: Request, res: Response) => {
   const sleep = (ms: number): Promise<void> =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
-  for (let i = 0; i < words.length && !aborted; i += CHUNK_SIZE) {
-    const chunk = words.slice(i, i + CHUNK_SIZE).join('');
+  for (let i = 0; i < words.length && !aborted; i += chunkSize) {
+    const chunk = words.slice(i, i + chunkSize).join('');
     res.write(`data: ${JSON.stringify({ token: chunk })}\n\n`);
-    await sleep(TOKEN_DELAY_MS);
+    // Box-Muller transform: standard normal sample scaled by delayVariance
+    const variance = delayVariance > 0
+      ? Math.sqrt(-2 * Math.log(Math.random())) * Math.cos(2 * Math.PI * Math.random()) * delayVariance
+      : 0;
+    const delay = Math.max(0, avgDelay + variance);
+    await sleep(delay);
   }
 
   if (!aborted) {
@@ -45,6 +51,4 @@ app.post('/stream', async (req: Request, res: Response) => {
 
 app.listen(PORT, () => {
   console.log(`stream-lab server listening on http://localhost:${PORT}`);
-  console.log(`  TOKEN_DELAY_MS = ${TOKEN_DELAY_MS}`);
-  console.log(`  CHUNK_SIZE     = ${CHUNK_SIZE}`);
 });
