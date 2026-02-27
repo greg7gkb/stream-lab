@@ -369,6 +369,86 @@ body {
   word-break: break-all;
 }
 
+.output-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* Segmented control */
+.seg-control {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.seg-btn {
+  background: none;
+  border: none;
+  border-right: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.seg-btn:last-child {
+  border-right: none;
+}
+
+.seg-btn:hover:not(.seg-btn-active) {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.seg-btn-active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Token animations */
+.token {
+  display: inline;
+}
+
+@keyframes tokenFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes tokenSlide {
+  from { opacity: 0; transform: translateY(6px) scale(0.8); }
+  to   { opacity: 1; transform: translateY(0) scale(1.0); }
+}
+
+@keyframes tokenPop {
+  from { opacity: 0; transform: scale(0.4); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes tokenTypewriter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.token-plain      { /* no animation */ }
+.token-fade       { animation: tokenFade       0.4s ease-out both; }
+.token-slide      { display: inline-block; animation: tokenSlide      0.35s ease-out both; }
+.token-pop        { display: inline-block; animation: tokenPop        0.4s cubic-bezier(0.34, 1.36, 0.64, 1) both; }
+.token-typewriter { animation: tokenTypewriter 0.01s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .token-fade, .token-slide, .token-pop, .token-typewriter {
+    animation: none;
+  }
+}
+
 .status-bar {
   min-height: 1.25rem;
   font-size: 0.8rem;

@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import type { DebugEntry } from './types';
+import type { Token, DebugEntry } from './types';
 import ParametersSection from './ParametersSection';
 import InputSection from './InputSection';
 import OutputSection from './OutputSection';
@@ -9,7 +9,7 @@ const SERVER_URL = '/stream';
 
 export default function App() {
   const [prompt, setPrompt] = useState('');
-  const [output, setOutput] = useState('');
+  const [tokens, setTokens] = useState<Token[]>([]);
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState('');
 
@@ -28,6 +28,7 @@ export default function App() {
   const debugSectionRef = useRef<HTMLElement>(null);
   const streamStartRef = useRef<number>(0);
   const seqRef = useRef<number>(0);
+  const tokenIdRef = useRef<number>(0);
 
   const scrollToBottom = useCallback(() => {
     if (outputRef.current) {
@@ -46,12 +47,13 @@ export default function App() {
   const send = useCallback(async () => {
     if (streaming || !prompt.trim()) return;
 
-    setOutput('');
+    setTokens([]);
     setError('');
     setDebugLog([]);
     setStreaming(true);
     streamStartRef.current = performance.now();
     seqRef.current = 0;
+    tokenIdRef.current = 0;
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -98,9 +100,10 @@ export default function App() {
 
           try {
             const { token } = JSON.parse(payload) as { token: string };
-            setOutput((prev) => {
+            const id = tokenIdRef.current++;
+            setTokens((prev) => {
               requestAnimationFrame(scrollToBottom);
-              return prev + token;
+              return [...prev, { id, text: token }];
             });
           } catch {
             // ignore malformed JSON lines
@@ -126,7 +129,6 @@ export default function App() {
     });
   }, []);
 
-  // Scroll debug log when new entries arrive
   useEffect(() => {
     if (debugRef.current) {
       debugRef.current.scrollTop = debugRef.current.scrollHeight;
@@ -160,7 +162,7 @@ export default function App() {
           onStop={stop}
         />
         <OutputSection
-          output={output}
+          tokens={tokens}
           streaming={streaming}
           error={error}
           outputRef={outputRef}
