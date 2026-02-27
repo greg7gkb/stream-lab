@@ -1,4 +1,10 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+
+interface DebugEntry {
+  seq: number;
+  ms: number;   // elapsed ms since stream start
+  raw: string;  // raw SSE payload
+}
 
 const SERVER_URL = '/stream';
 
@@ -72,8 +78,15 @@ export default function App() {
   const [avgDelay, setAvgDelay] = useState(30);
   const [delayVariance, setDelayVariance] = useState(10);
 
+  const [debugLog, setDebugLog] = useState<DebugEntry[]>([]);
+  const [debugVisible, setDebugVisible] = useState(false);
+
   const abortRef = useRef<AbortController | null>(null);
   const outputRef = useRef<HTMLDivElement | null>(null);
+  const debugRef = useRef<HTMLDivElement | null>(null);
+  const debugSectionRef = useRef<HTMLElement | null>(null);
+  const streamStartRef = useRef<number>(0);
+  const seqRef = useRef<number>(0);
 
   const scrollToBottom = () => {
     if (outputRef.current) {
@@ -100,7 +113,10 @@ export default function App() {
     // Reset state for new request
     setOutput('');
     setError('');
+    setDebugLog([]);
     setStreaming(true);
+    streamStartRef.current = performance.now();
+    seqRef.current = 0;
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -142,6 +158,13 @@ export default function App() {
 
           const payload = trimmed.slice('data:'.length).trim();
 
+          const entry: DebugEntry = {
+            seq: seqRef.current++,
+            ms: Math.round(performance.now() - streamStartRef.current),
+            raw: payload,
+          };
+          setDebugLog((prev) => [...prev, entry]);
+
           if (payload === '[DONE]') {
             setStreaming(false);
             abortRef.current = null;
@@ -170,6 +193,12 @@ export default function App() {
       abortRef.current = null;
     }
   }, [prompt, streaming, chunkSize, avgDelay, delayVariance]);
+
+  useEffect(() => {
+    if (debugRef.current) {
+      debugRef.current.scrollTop = debugRef.current.scrollHeight;
+    }
+  }, [debugLog]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -300,6 +329,34 @@ export default function App() {
               <span className="status done">✓ Done — {output.split(/\s+/).filter(Boolean).length} words</span>
             ) : null}
           </div>
+        </section>
+        <section className="section" ref={debugSectionRef}>
+          <button
+            className="section-toggle"
+            onClick={() => {
+              setDebugVisible((v) => {
+                if (!v) requestAnimationFrame(() => debugSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }));
+                return !v;
+              });
+            }}
+          >
+            <h2 className="section-label">Debug</h2>
+            <span className="section-toggle-icon">{debugVisible ? '▾' : '▸'}</span>
+          </button>
+          {debugVisible && (
+            <div className="debug-log" ref={debugRef}>
+              {debugLog.length === 0
+                ? <span className="placeholder">Events will appear here…</span>
+                : debugLog.map((entry) => (
+                    <div key={entry.seq} className="debug-entry">
+                      <span className="debug-seq">{String(entry.seq).padStart(4, '0')}</span>
+                      <span className="debug-ms">{entry.ms}ms</span>
+                      <span className="debug-raw">{entry.raw}</span>
+                    </div>
+                  ))
+              }
+            </div>
+          )}
         </section>
       </main>
     </div>

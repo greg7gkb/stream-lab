@@ -76,6 +76,23 @@ body {
   overflow: hidden;
 }
 
+.section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.section-toggle-icon {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
 .section-label {
   font-size: 0.7rem;
   font-weight: 600;
@@ -312,6 +329,44 @@ body {
 .param-group input:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.debug-log {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-height: 120px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.debug-entry {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.debug-seq {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.debug-ms {
+  color: var(--accent);
+  flex-shrink: 0;
+  min-width: 5ch;
+  text-align: right;
+}
+
+.debug-raw {
+  color: var(--text);
+  word-break: break-all;
 }
 
 .status-bar {
