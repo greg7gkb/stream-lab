@@ -7,8 +7,8 @@ export default function App() {
   const [output, setOutput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState('');
-  const abortRef = useRef(null);
-  const outputRef = useRef(null);
+  const abortRef = useRef<AbortController | null>(null);
+  const outputRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToBottom = () => {
     if (outputRef.current) {
@@ -47,7 +47,7 @@ export default function App() {
         throw new Error(`Server error: ${res.status}`);
       }
 
-      const reader = res.body.getReader();
+      const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
 
@@ -59,7 +59,7 @@ export default function App() {
 
         // Process complete SSE lines from buffer
         const lines = buffer.split('\n');
-        buffer = lines.pop(); // keep incomplete last line
+        buffer = lines.pop()!; // keep incomplete last line
 
         for (const line of lines) {
           const trimmed = line.trim();
@@ -74,7 +74,7 @@ export default function App() {
           }
 
           try {
-            const { token } = JSON.parse(payload);
+            const { token } = JSON.parse(payload) as { token: string };
             setOutput((prev) => {
               const next = prev + token;
               // Scroll after state update
@@ -87,7 +87,7 @@ export default function App() {
         }
       }
     } catch (err) {
-      if (err.name !== 'AbortError') {
+      if (err instanceof Error && err.name !== 'AbortError') {
         setError(err.message || 'Stream failed');
       }
     } finally {
@@ -96,7 +96,7 @@ export default function App() {
     }
   }, [prompt, streaming]);
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       send();
@@ -115,7 +115,7 @@ export default function App() {
           <textarea
             className="prompt-input"
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Enter a prompt… (Enter to send, Shift+Enter for newline)"
             rows={3}

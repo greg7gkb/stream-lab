@@ -1,16 +1,16 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { pickResponse } from './responses.js';
 
-const PORT = process.env.PORT ?? 3001;
-const TOKEN_DELAY_MS = Number(process.env.TOKEN_DELAY_MS ?? 30);
-const CHUNK_SIZE = Number(process.env.CHUNK_SIZE ?? 1);
+const PORT: number = Number(process.env.PORT ?? 3001);
+const TOKEN_DELAY_MS: number = Number(process.env.TOKEN_DELAY_MS ?? 30);
+const CHUNK_SIZE: number = Number(process.env.CHUNK_SIZE ?? 1);
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.post('/stream', async (req, res) => {
+app.post('/stream', async (req: Request, res: Response) => {
   const { prompt = '' } = req.body ?? {};
 
   const text = pickResponse(prompt);
@@ -27,7 +27,8 @@ app.post('/stream', async (req, res) => {
     aborted = true;
   });
 
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const sleep = (ms: number): Promise<void> =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
   for (let i = 0; i < words.length && !aborted; i += CHUNK_SIZE) {
     const chunk = words.slice(i, i + CHUNK_SIZE).join('');

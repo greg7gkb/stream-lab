@@ -39,13 +39,15 @@ TOKEN_DELAY_MS=15 CHUNK_SIZE=2 npm run dev
 ```
 ├── package.json              # root (npm workspaces)
 ├── server/
-│   ├── index.js              # Express SSE endpoint
-│   └── responses.js          # preset mock responses
+│   ├── index.ts              # Express SSE endpoint
+│   ├── responses.ts          # preset mock responses
+│   └── tsconfig.json
 └── client/
-    ├── vite.config.js        # dev server + proxy to :3001
+    ├── vite.config.ts        # dev server + proxy to :3001
     ├── index.html
+    ├── tsconfig.json
     └── src/
-        ├── main.jsx
-        ├── App.jsx           # streaming UI component
+        ├── main.tsx
+        ├── App.tsx           # streaming UI component
         └── App.css           # dark theme styles
 ```
