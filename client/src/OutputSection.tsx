@@ -1,7 +1,9 @@
-import { memo, useState } from 'react';
+import { memo, useState, useEffect } from 'react';
 import type { Token } from './types';
 
 type RenderMode = 'plain' | 'fade' | 'slide' | 'pop' | 'typewriter';
+
+const TYPEWRITER_MS_PER_CHAR = 30;
 
 const MODES: { id: RenderMode; label: string }[] = [
   { id: 'plain',      label: 'Plain' },
@@ -18,7 +20,7 @@ interface Props {
   outputRef: React.RefObject<HTMLDivElement>;
 }
 
-function renderToken(token: Token, mode: RenderMode): React.ReactNode {
+function renderToken(token: Token, mode: RenderMode, onAnimationEnd?: () => void): React.ReactNode {
   if (mode === 'typewriter') {
     if (token.text.length === 0) return null;
     return (
@@ -26,9 +28,10 @@ function renderToken(token: Token, mode: RenderMode): React.ReactNode {
         key={token.id}
         className="token token-typewriter"
         style={{
-          animationDuration: `${token.text.length * 30}ms`,
+          animationDuration: `${token.text.length * TYPEWRITER_MS_PER_CHAR}ms`,
           animationTimingFunction: `steps(${token.text.length}, end)`,
         }}
+        onAnimationEnd={onAnimationEnd}
       >
         {token.text}
       </span>
@@ -39,8 +42,16 @@ function renderToken(token: Token, mode: RenderMode): React.ReactNode {
 
 export default memo(function OutputSection({ tokens, streaming, error, outputRef }: Props) {
   const [mode, setMode] = useState<RenderMode>('plain');
+  const [shownCount, setShownCount] = useState(1);
+
+  // Reset queue when a new stream starts (tokens array cleared)
+  useEffect(() => {
+    if (tokens.length === 0) setShownCount(1);
+  }, [tokens.length]);
 
   const wordCount = tokens.map(t => t.text).join('').split(/\s+/).filter(Boolean).length;
+
+  const visibleTokens = mode === 'typewriter' ? tokens.slice(0, shownCount) : tokens;
 
   return (
     <section className="section">
@@ -64,7 +75,14 @@ export default memo(function OutputSection({ tokens, streaming, error, outputRef
       <div className="output-box" ref={outputRef}>
         {tokens.length === 0 && !streaming
           ? <span className="placeholder">Response will appear here…</span>
-          : tokens.map((token) => renderToken(token, mode))
+          : visibleTokens.map((token, idx) => {
+              const isLast = idx === visibleTokens.length - 1;
+              return renderToken(
+                token,
+                mode,
+                mode === 'typewriter' && isLast ? () => setShownCount(c => c + 1) : undefined,
+              );
+            })
         }
       </div>
 
